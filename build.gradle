@@ -1,0 +1,128 @@
+buildscript {
+  ext {
+    springBootVersion = '1.3.3.RELEASE'
+    assertjVersion = '3.3.0'
+  }
+
+  repositories {
+    mavenLocal()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+    mavenCentral()
+    jcenter()
+  }
+
+  dependencies {
+    classpath 'net.researchgate:gradle-release:2.3.4'
+    classpath 'org.ajoberstar:gradle-git:1.4.2'
+    classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:1.2"
+    classpath 'se.transmode.gradle:gradle-docker:1.2'
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:$springBootVersion"
+  }
+}
+
+repositories {
+  mavenLocal()
+  mavenCentral()
+  jcenter()
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: 'docker'
+apply plugin: 'application'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+group = 'ls-shipfast'
+
+jar {
+  version = '0.0.1'
+}
+
+// Running locally
+bootRun {
+  jvmArgs = ["-Dserver.port=10001"]
+}
+
+distDocker {
+  exposePort 80
+}
+
+docker {
+  baseImage = 'anapsix/alpine-java:8'
+}
+
+bootRepackage  {
+  classifier = 'exec'
+}
+
+sourceSets {
+  integrationTest {
+    java {
+      compileClasspath += main.output + test.output
+      runtimeClasspath += main.output + test.output
+      srcDir file('src/intTest/java')
+    }
+    resources.srcDir file('src/intTest/resources')
+  }
+}
+
+configurations {
+  integrationTestCompile.extendsFrom testCompile
+  integrationTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+  compile("org.springframework.boot:spring-boot-starter-web") {
+    exclude module: "spring-boot-starter-tomcat"
+  }
+  compile "org.springframework.boot:spring-boot-starter-jetty"
+  compile "org.springframework.boot:spring-boot-starter-actuator"
+  compile "org.springframework.boot:spring-boot-devtools"
+  compile "org.springframework.boot:spring-boot-starter-amqp"
+
+  testCompile "junit:junit"
+  testCompile "org.assertj:assertj-core:$assertjVersion"
+  testCompile "org.springframework.boot:spring-boot-starter-test"
+}
+
+tasks.withType(JavaCompile) {
+  options.incremental = true
+}
+
+tasks.withType(Test) {
+  reports.html.destination = file("${reporting.baseDir}/${name}")
+}
+
+task integrationTest(type: Test) {
+  testClassesDir = sourceSets.integrationTest.output.classesDir
+  classpath = sourceSets.integrationTest.runtimeClasspath
+  outputs.upToDateWhen { false }
+}
+
+task startIntegrationServices(type: Exec, group: 'docker') {
+  // Define integration services
+  commandLine 'docker', 'run', '-p', '27017', '--name', 'db', '-d', 'mongo'
+}
+task stopIntegrationServices(group: 'docker') << {
+  // Clean-up integration services
+  exec { commandLine 'docker', 'stop', 'db' }
+  exec {
+    ignoreExitValue true
+    commandLine 'docker', 'rm', 'db'
+  }
+}
+
+check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+integrationTest.dependsOn startIntegrationServices
+integrationTest.finalizedBy stopIntegrationServices
+
+task createWrapper(type: Wrapper) {
+  gradleVersion = '2.9'
+}

@@ -1,0 +1,43 @@
+machine:
+  services:
+    - docker
+  java:
+    version: oraclejdk8
+  environment:
+    GCLOUD: /opt/google-cloud-sdk/bin/gcloud
+    GCLOUD_PROJECT: "nokt-dev"
+    GCLOUD_ZONE: "us-central1-f"
+    GCLOUD_CLUSTER: "cd"
+    IMAGE_NAME: "ls-shipfast/ls-shipfast-orders"
+
+general:
+  branches:
+    only:
+      - master
+      - develop
+
+dependencies:
+  pre:
+    - echo $CLIENT_CREDENTIALS > $HOME/client-credentials.json
+    - echo "y" | sudo $GCLOUD components --quiet install kubectl
+    - sudo chmod 757 $HOME/.config/gcloud -R
+    - gcloud auth activate-service-account --key-file $HOME/client-credentials.json
+    - gcloud config set project $GCLOUD_PROJECT
+    - gcloud config set compute/zone $GCLOUD_ZONE
+    - gcloud config set container/cluster $GCLOUD_CLUSTER
+    - gcloud container clusters get-credentials $GCLOUD_CLUSTER
+    - kubectl cluster-info
+
+test:
+  post:
+    - ./gradlew -q integrationTest
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+    - ./gradlew -q distDocker
+
+deployment:
+  staging:
+    branch: master
+    commands:
+      - docker tag $IMAGE_NAME gcr.io/$GCLOUD_PROJECT/$(echo "$CIRCLE_PROJECT_USERNAME" | awk '{print tolower($0)}')/$IMAGE_NAME:latest
+      - gcloud docker push gcr.io/$GCLOUD_PROJECT/$(echo "$CIRCLE_PROJECT_USERNAME" | awk '{print tolower($0)}')/$IMAGE_NAME --verbosity debug
