@@ -46,7 +46,7 @@ jar {
 
 // Running locally
 bootRun {
-  jvmArgs = ["-Dserver.port=10001"]
+  jvmArgs = ["-Dserver.port=10004"]
 }
 
 distDocker {
@@ -81,6 +81,7 @@ dependencies {
   compile("org.springframework.boot:spring-boot-starter-web") {
     exclude module: "spring-boot-starter-tomcat"
   }
+  compile "org.springframework.boot:spring-boot-starter-data-mongodb"
   compile "org.springframework.boot:spring-boot-starter-jetty"
   compile "org.springframework.boot:spring-boot-starter-actuator"
   compile "org.springframework.boot:spring-boot-devtools"
