@@ -46,7 +46,7 @@ jar {
 
 // Running locally
 bootRun {
-  jvmArgs = ["-Dserver.port=10001"]
+  jvmArgs = ["-Dserver.port=10004"]
 }
 
 distDocker {
@@ -66,9 +66,9 @@ sourceSets {
     java {
       compileClasspath += main.output + test.output
       runtimeClasspath += main.output + test.output
-      srcDir file('src/intTest/java')
+      srcDir file('src/integrationTest/java')
     }
-    resources.srcDir file('src/intTest/resources')
+    resources.srcDir file('src/integrationTest/resources')
   }
 }
 
@@ -81,10 +81,13 @@ dependencies {
   compile("org.springframework.boot:spring-boot-starter-web") {
     exclude module: "spring-boot-starter-tomcat"
   }
+  compile "org.springframework.boot:spring-boot-starter-data-mongodb"
   compile "org.springframework.boot:spring-boot-starter-jetty"
   compile "org.springframework.boot:spring-boot-starter-actuator"
   compile "org.springframework.boot:spring-boot-devtools"
   compile "org.springframework.boot:spring-boot-starter-amqp"
+  compile "io.advantageous.qbit:qbit-servlet:0.8.6"
+  compile "javax.inject:javax.inject:1"
 
   testCompile "junit:junit"
   testCompile "org.assertj:assertj-core:$assertjVersion"
