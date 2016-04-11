@@ -8,7 +8,7 @@ machine:
     GCLOUD_PROJECT: "nokt-dev"
     GCLOUD_ZONE: "us-central1-f"
     GCLOUD_CLUSTER: "cd"
-    IMAGE_NAME: "ls-shipfast/ls-shipfast-inventory"
+    IMAGE_NAME: "ls-shipfast/ls-shipfast-orders"
 
 general:
   branches:
