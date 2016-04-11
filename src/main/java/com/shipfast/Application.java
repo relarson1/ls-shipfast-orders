@@ -1,6 +1,7 @@
 package com.shipfast;
 
 import com.mongodb.MongoClient;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -14,7 +15,9 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.mongodb.MongoDbFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.SimpleMongoDbFactory;
+import org.springframework.web.client.RestTemplate;
 
+@EnableRabbit
 @Configuration
 @EnableAutoConfiguration
 @ComponentScan("com.shipfast")
@@ -62,6 +65,11 @@ public class Application extends SpringBootServletInitializer {
 	@Bean
 	public OrdersService ordersService() {
 		return new OrdersService();
+	}
+
+	@Bean
+	public RestTemplate restTemplate() {
+		return new RestTemplate();
 	}
 
 	@Override
