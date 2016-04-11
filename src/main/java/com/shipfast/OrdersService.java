@@ -41,9 +41,7 @@ public class OrdersService {
 				Map.class
 			);
 
-			if (itemDetails != null) {
-				stockQuantity = Integer.parseInt(String.valueOf(itemDetails.get("stockQuantity")));
-			}
+			stockQuantity = Integer.parseInt(String.valueOf(itemDetails.get("stockQuantity")));
 		}
 		catch(RuntimeException ex) {
 			log.error("Failed to get item details", ex);
