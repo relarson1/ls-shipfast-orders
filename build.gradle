@@ -51,6 +51,7 @@ bootRun {
 
 distDocker {
   exposePort 80
+  setEnvironment 'JAVA_OPTS', '-Dspring.profiles.active=docker'
 }
 
 docker {
@@ -66,9 +67,9 @@ sourceSets {
     java {
       compileClasspath += main.output + test.output
       runtimeClasspath += main.output + test.output
-      srcDir file('src/integrationTest/java')
+      srcDir file('src/intTest/java')
     }
-    resources.srcDir file('src/integrationTest/resources')
+    resources.srcDir file('src/intTest/resources')
   }
 }
 
