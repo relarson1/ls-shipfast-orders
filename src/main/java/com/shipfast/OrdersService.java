@@ -27,11 +27,17 @@ public class OrdersService {
 
 	@RequestMapping(value = "/",method = RequestMethod.POST)
 	public Order placeOrder(Order order) {
+		Order updated = new Order();
+		updated.setStatus("new");
+		updated.setQuantity(order.getQuantity());
+		updated.setItemId(order.getItemId());
+		updated.setId("order-" + Math.round(Math.random() * 100000));
+
 		int stockQuantity = 0;
 
 		try {
 			Map<String, Object> itemDetails = restTemplate.getForObject(
-				services.getURI("inventory") + "/items/" + order.getItemId(),
+				services.getURI("inventory") + "/items/" + updated.getItemId(),
 				Map.class
 			);
 
@@ -41,17 +47,17 @@ public class OrdersService {
 		}
 		catch(RuntimeException ex) {
 			log.error("Failed to get item details", ex);
-			order.setStatus("failed");
+			updated.setStatus("failed");
 		}
 
-		if(stockQuantity > 0) {
-			order.setStatus("pending");
-			orderRepository.save(order);
+		if(stockQuantity - updated.getQuantity() >= 0) {
+			updated.setStatus("pending");
+			orderRepository.save(updated);
 		}
 		else {
-			order.setStatus("unavailable");
+			updated.setStatus("unavailable");
 		}
-		return order;
+		return updated;
 	}
 
 	@RequestMapping("/{id}")
