@@ -46,7 +46,7 @@ jar {
 
 // Running locally
 bootRun {
-  jvmArgs = ["-Dserver.port=10004"]
+  jvmArgs = ["-Dserver.port=10001"]
 }
 
 distDocker {
