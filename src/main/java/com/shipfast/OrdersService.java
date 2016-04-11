@@ -49,7 +49,7 @@ public class OrdersService {
 		}
 
 		if(stockQuantity - updated.getQuantity() >= 0) {
-			updated.setStatus("pending");
+			updated.setStatus("InProcess");
 			orderRepository.save(updated);
 		}
 		else {
