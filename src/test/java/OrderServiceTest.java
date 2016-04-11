@@ -39,28 +39,48 @@ public class OrderServiceTest {
 	@Test
 	public void ensureItemInStockWhenOrdering() {
 		// Arrange
-		Map<String, Object> inventoryCheck = new HashMap<>();
-		inventoryCheck.put("id", "1234");
-		inventoryCheck.put("stockQuantity", 5);
+		Map<String, Object> item1 = new HashMap<>();
+		item1.put("id", "1234");
+		item1.put("stockQuantity", 5);
+
+		Map<String, Object> item2 = new HashMap<>();
+		item2.put("id", "4567");
+		item2.put("stockQuantity", 100);
 
 		when(services.getURI("inventory")).thenReturn("http://inventory/api");
+
 		when(restTemplate.getForObject(
 			"http://inventory/api/items/1234",
 			Map.class
-		)).thenReturn(inventoryCheck);
+		)).thenReturn(item1);
+
+		when(restTemplate.getForObject(
+			"http://inventory/api/items/4567",
+			Map.class
+		)).thenReturn(item2);
 
 		// Create an order for an item whose in-stock quantity is not
 		// enough to cover the order
-		Order order = new Order();
-		order.setItemId("1234");
-		order.setQuantity(10);
+		Order order1 = new Order();
+		order1.setItemId("1234");
+		order1.setQuantity(10);
+
+		// Create an order for an item whose stock is in sufficient quantity
+		Order order2 = new Order();
+		order2.setItemId("4567");
+		order2.setQuantity(50);
 
 		// Act
-		Order response = ordersService.placeOrder(order);
+		Order response1 = ordersService.placeOrder(order1);
+		Order response2 = ordersService.placeOrder(order2);
 
 		// Expect
-		Assert.assertNotNull(response);
-		Assert.assertEquals(response.getQuantity(), order.getQuantity());
-		Assert.assertEquals(response.getStatus(), "unavailable");
+		Assert.assertNotNull(response1);
+		Assert.assertEquals(response1.getQuantity(), order1.getQuantity());
+		Assert.assertEquals(response1.getStatus(), "unavailable");
+
+		Assert.assertNotNull(response2);
+		Assert.assertEquals(response2.getQuantity(), order2.getQuantity());
+		Assert.assertEquals(response2.getStatus(), "pending");
 	}
 }
